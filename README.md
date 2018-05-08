@@ -5,7 +5,7 @@ This repository describes and demonstrates two approaches to writing modular, co
 The core of both approaches is the idea of manually doing for `haskellPackages` what the overlay system does for top-level packages.
 
 ## As Sub-Overlays
-_Example hoverlay upgrading xmonad to use more recent source from git_
+_example hoverlay upgrading xmonad to use more recent source from git_
 ```nix
 # sub-level/overlays/haskell/xmonad-hoverlay.nix
 self: super: hself: hsuper: {
@@ -49,7 +49,7 @@ self: super: hoverlayfiles: hself: hsuper:
 ```
 
 ## As Top-Level Overlays
-_Example overlay appending to `haskellOverlays`, eventually effecting an upgrade upon xmonad_
+_example overlay appending to `haskellOverlays`, eventually effecting an upgrade upon xmonad_
 ```nix
 # top-level/overlays/50-xmonad-overlay.nix
 self: super:
