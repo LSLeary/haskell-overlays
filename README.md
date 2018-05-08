@@ -1,10 +1,10 @@
 # haskell-overlays
-By default, overlays targeting packages in haskellPackages are forced to replace the whole haskell ecosystem in a way that does not compose, and is not modular.
+By default, overlays targeting packages in `haskellPackages` are forced to replace the whole haskell ecosystem in a way that does not compose, and is not modular.
 This repository describes and demonstrates two approaches to writing modular, composable overlays for haskell packages, both of which should also apply equally well to other such ecosystems.
 
-The core of both approaches is the idea of manually doing for haskellPackages what the overlay system does for top-level packages.
+The core of both approaches is the idea of manually doing for `haskellPackages` what the overlay system does for top-level packages.
 
-## As Sub-overlays
+## As Sub-Overlays
 _Example hoverlay upgrading xmonad to use more recent source from git_
 ```nix
 # sub-level/overlays/haskell/xmonad-hoverlay.nix
@@ -39,7 +39,7 @@ self: super: {
   };
 }
 ```
-Note the construction of the overlay performed by application of `./performOverlay.nix self super` to the list of hoverlay files. The source is a left-fold with `extend`; accumulating net updates to haskellPackages.
+Note the construction of the overlay performed by application of `import ./performOverlay.nix self super` to the list of hoverlay file paths. The source is a left-fold with `extend`; accumulating net updates to `haskellPackages`.
 ```nix
 # sub-level/overlays/haskell/performOverlay.nix
 self: super: hoverlayfiles: hself: hsuper:
@@ -49,7 +49,7 @@ self: super: hoverlayfiles: hself: hsuper:
 ```
 
 ## As Top-Level Overlays
-_Example overlay appending to `haskellOverlays` with the eventual effect of upgrading xmonad to use more recent source from git_
+_Example overlay appending to `haskellOverlays`, eventually effecting an upgrade upon xmonad_
 ```nix
 # top-level/overlays/50-xmonad-overlay.nix
 self: super:
@@ -66,12 +66,13 @@ let hol = hself: hsuper: {
 in { haskellOverlays = super.haskellOverlays ++ [ hol ]; }
 ```
 This method is largely similar to the sub-overlay strategy, except that the files themselves are regular overlays which append sub-overlay-like functions to the top level attribute `haskellOverlays`.
-These functions could be exactly the same as the sub-overlays of the previous section, but the `self` and `super` values are already provided by the regular overlay, hence what we append is equivalent to an hoverlay that has had the two arguments applied in advance.
-In and of itself the overlay above does nothing to the xmonad package; the framework required for it to take effect is provided by these two overlays.
+These functions could be exactly the same as the sub-overlays of the previous section, but the `self` and `super` values are already provided by the regular overlay, hence what we append instead is equivalent to an hoverlay that has had the two arguments applied in advance.
+In and of itself the overlay above does nothing to the xmonad package; the framework required for it to take effect is provided by the following overlays.
 ```nix
 # top-level/overlays/10-haskellOverlays.nix
 self: super: { haskellOverlays = []; }
 ```
+This sets up the `haskellOverlays` attribute so that later overlays can append to it without needing to worry about whether or not it's already present.
 ```nix
 # top-level/overlays/90-haskellPackages-overlay.nix
 self: super: {
@@ -80,8 +81,7 @@ self: super: {
   };
 }
 ```
-The former sets up the haskellOverlays attribute so that later overlays can append to it without needing to worry about it possibly not being present yet, the latter does the job that `default.nix` did in the previous section, except in this case
-there are a few changes to `performOverlay.nix`:
+This does the job that `default.nix` did in the previous section, except in this case there are a few changes to `performOverlay.nix`.
 ```nix
 # top-level/performOverlay.nix
 self: super: hoverlays: hself: hsuper:
@@ -89,7 +89,7 @@ self: super: hoverlays: hself: hsuper:
   in  super.lib.foldl extend hsuper (map (hol: hol hself) hoverlays)
 ```
 Note that without a default.nix, the files need to be named in such a way that they will be used in the intended order, and `performOverlay.nix` must be placed somewhere out of the way.
-The naming strategy used for modular configuration of varying priority in `*.conf.d/` directories is thus adopted for use here.
+The naming strategy elsewhere used for modular configuration of varying priority in `*.conf.d/` directories is thus adopted for use here.
 
 ## Disclaimer & Feedback
 I, the author, am relatively new to NixOS and nix.
